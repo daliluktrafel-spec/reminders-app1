@@ -120,14 +120,13 @@ const messaging = firebase.messaging();
 
 const vapidKey = "BObrXKIcIqwJFN0gYxjNMuZ2xjE2YPIOSdj4n3TcVrfE_n_fpcxTaq12i1kT8qCKhTb1rJMCntIBmQTfrjQvQXw";
 
-// تسجيل Service Worker (المسار نسبي بجانب index.html)
+// تسجيل Service Worker
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker
     .register('firebase-messaging-sw.js')
     .then(() => console.log('Service Worker مسجّل'))
     .catch(err => console.error('فشل تسجيل SW', err));
 }
-
 
 /* الدوال */
 function testSound(){
@@ -147,6 +146,7 @@ function addReminder(){
   }
 
   reminders.push({ title, type, date, time });
+  localStorage.setItem("reminders", JSON.stringify(reminders)); // ✅ تخزين
   renderTables();
   alert("✅ تم حفظ التذكير");
 }
@@ -178,6 +178,13 @@ function showTab(tab){
 }
 
 window.onload = () => {
+  // ✅ استرجاع التذكيرات عند تحميل الصفحة
+  const saved = localStorage.getItem("reminders");
+  if (saved) {
+    reminders = JSON.parse(saved);
+    renderTables();
+  }
+
   document.getElementById('enablePush').addEventListener('click', async () => {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') {
@@ -200,11 +207,25 @@ window.onload = () => {
 
   showTab('tab-new');
 };
+
+// ✅ فحص التذكيرات كل دقيقة
+setInterval(() => {
+  const now = new Date();
+  const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const currentTime = now.toTimeString().slice(0,5);   // HH:MM
+
+  reminders.forEach(r => {
+    if (r.date === currentDate && r.time === currentTime) {
+      openPopup(`🔔 ${r.title} - ${r.type}`);
+      new Audio("https://www.soundjay.com/button/beep-07.wav").play();
+    }
+  });
+}, 60000); // كل 60 ثانية
 </script>
 
 <div class="tabs">
-<button onclick="showTab('tab-new')">➕ تذكير جديد</button>
-<button onclick="showTab('tab-upcoming')">📅 القادمة</button>
+  <button onclick="showTab('tab-new')">➕ تذكير جديد</button>
+  <button onclick="showTab('tab-upcoming')">📅 القادمة</button>
 </div>
 
 </body>
