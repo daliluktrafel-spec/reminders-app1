@@ -214,6 +214,7 @@ setInterval(() => {
   const currentDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
   const currentTime = now.toTimeString().slice(0,5);   // HH:MM
 
+  // ✅ استخدم المصفوفة المسترجعة من localStorage
   reminders.forEach(r => {
     if (r.date === currentDate && r.time === currentTime) {
       openPopup(`🔔 ${r.title} - ${r.type}`);
